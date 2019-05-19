@@ -1,5 +1,6 @@
 # Author: Lukas Halbritter <halbritl@informatik.uni-freiburg.de>
 # Copyright 2019
+'''This module provides the functionality to build hera models.'''
 import json
 
 class Model:
@@ -159,7 +160,7 @@ class Model:
                 continue
 
             # Remove the utilities of the consequence from the model
-            for cons_string in [consequence, self.not_string(consequence)]:
+            for cons_string in [consequence, self.__not_string(consequence)]:
                 if cons_string in self.__utilities:
                     del self.__utilities[consequence]
 
@@ -202,7 +203,7 @@ class Model:
         # Adjust the consequence name if the utility of not reaching the
         # consequence is to be set
         if not affirmation:
-            consequence = self.not_string(consequence)
+            consequence = self.__not_string(consequence)
 
         self.__utilities[consequence] = value
 
@@ -218,7 +219,7 @@ class Model:
                            to be removed.
         '''
         if not affirmation:
-            consequence = self.not_string(consequence)
+            consequence = self.__not_string(consequence)
 
         # Remove the utility of the consequence, if it exists
         if consequence in self.__utilities:
@@ -261,13 +262,18 @@ class Model:
 
     def check_model(self):
         # TODO: Check if all consequences can be reached
-        # TODO: Check, if all intentions have at least the action itself as
-        #       intention
         pass
 
     @staticmethod
-    def not_string(variable):
+    def __not_string(variable):
         return 'Not(\'' + variable + '\')'
+
+    @staticmethod
+    def and_string(*variables):
+        string = ''
+        for variable in variables:
+            # TODO ...
+        return 'And(\'' + variable1 + '\', \'' + variable2 + '\')'
 
     # PRIVATE HELPER METHODS ---------------------------------------------------
     def __verify_description(self, description):
