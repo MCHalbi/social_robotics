@@ -270,9 +270,9 @@ class Model:
 
     @staticmethod
     def and_string(*variables):
-        string = ''
-        for variable in variables:
-            # TODO ...
+        # TODO ...
+        # string = ''
+        # for variable in variables:
         return 'And(\'' + variable1 + '\', \'' + variable2 + '\')'
 
     # PRIVATE HELPER METHODS ---------------------------------------------------
