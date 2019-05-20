@@ -142,6 +142,10 @@ class Model:
             if consequence not in self.__consequences:
                 self.__consequences.append(consequence)
 
+            # Instantiate the mechanisms of the consequences with empty
+                # mechanism
+                self.__mechanisms[consequence] = "" #TODO
+
     def remove_consequences(self, *consequences):
         '''Remove one or multiple consequences from the model.
         This also removes the mechanisms and utilites of the consequences.
@@ -174,9 +178,31 @@ class Model:
                     intentions.remove(consequence)
 
     # MECHANISMS ---------------------------------------------------------------
-    def add_mechanism(self, mechanism):
+    def add_mechanism(self, consequence, *mechanism):
         # TODO
-        pass
+
+        self.__verify_consequence(consequence, True)
+
+        # Assure that the variables are all valid (strings)
+        var_valid = []
+        for variable in mechanism:
+            var_valid.append(isinstance(variable, str))
+        if not all(var_valid): #TODO validity must be cons, 
+            raise TypeError('The components of a mechanism must be a string')
+
+        mecha = []
+        if "And" in self.__mechanisms[consequence]:
+            mecha=self.__mechanisms[consequence][5:-2].split('\',\'')
+        elif self.__mechanisms[consequence]!="":
+            mecha.append(self.__mechanisms[consequence])
+
+        for variable in mechanism:
+            # If the variable is not already in the mechanism,
+            # add it
+            if variable not in self.__mechanisms[consequence]:
+                mecha.append(variable)   
+        self.__mechanisms[consequence]=self.__and_string(mecha)
+        print(self.__mechanisms[consequence]) 
 
     def remove_mechanism(self, mechanism):
         # TODO
@@ -225,9 +251,9 @@ class Model:
         if consequence in self.__utilities:
             del self.__utilities[consequence]
 
-    # INTENSIONS ---------------------------------------------------------------
+    # INTENTIONS ---------------------------------------------------------------
     def add_intentions(self, action, *consequences):
-        '''Add one or more consequences to the intension of an action.
+        '''Add one or more consequences to the intention of an action.
         If the consequence is already in the list, it will not be added twice.
 
         Arguments:
@@ -271,8 +297,13 @@ class Model:
 
     @staticmethod
     def __and_string(*variables):
-        # TODO: Implement
-        pass
+        # TODO ... variables list!
+        string = ''
+        if len(*variables) == 1:
+            return '\'' + ''.join(variables[0]) + '\''
+        else:
+            string += '\',\''.join(*variables)
+            return 'And(\'' + string + '\')'
 
     # PRIVATE HELPER METHODS ---------------------------------------------------
     def __verify_description(self, description):
