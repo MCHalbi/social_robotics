@@ -31,6 +31,15 @@ class Model:
 
         return json.dumps(model_dict, indent=4)
 
+    def reset(self):
+        '''Deletes all lists. Resets model. Description stays.'''
+        self.__actions = []
+        self.__background = []
+        self.__consequences = []
+        self.__mechanisms.clear()
+        self.__utilities.clear()
+        self.__intentions.clear()
+
     # DESCRIPTION --------------------------------------------------------------
     def set_description(self, description):
         '''Set the description of the model.
