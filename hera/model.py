@@ -264,16 +264,15 @@ class Model:
         # TODO: Check if all consequences can be reached
         pass
 
+    # STRING MODIFIERS ---------------------------------------------------------
     @staticmethod
     def __not_string(variable):
         return 'Not(\'' + variable + '\')'
 
     @staticmethod
-    def and_string(*variables):
-        # TODO ...
-        # string = ''
-        # for variable in variables:
-        return 'And(\'' + variable1 + '\', \'' + variable2 + '\')'
+    def __and_string(*variables):
+        # TODO: Implement
+        pass
 
     # PRIVATE HELPER METHODS ---------------------------------------------------
     def __verify_description(self, description):
@@ -281,8 +280,8 @@ class Model:
         Raise an error, if the description is not valid.
         '''
         # Assure that the description is a string
-        if not isinstance(description, str):
-            raise TypeError('Model description must be a string.')
+        self.__check_type(description, str,
+                          'Model description must be a string.')
 
     def __verify_action(self, action, check_if_in_model=False):
         '''Verify an action.
@@ -293,17 +292,29 @@ class Model:
                              name is registered in the models list of actions.
         '''
         # Assure that the action is a string
-        if not isinstance(action, str):
-            raise TypeError('An action name must be a string.')
+        self.__check_type(action, str, 'An action name must be a string.')
 
         # Assure that the action is actually an action of the model
-        if check_if_in_model and action not in self.__actions:
-            raise KeyError('{} is no action of the model.'.format(action))
+        if check_if_in_model:
+            self.__check_if_in_model(action, self.__actions, 'action')
 
-    def __verify_background(self, check_if_in_model=False):
+    def __verify_background(self, bg_condition, check_if_in_model=False):
+        '''Verify a background condition.
+        Raise an error, if the condition is not valid.
+
+        Arguments:
+        check_if_in_model -- True, if the method should check whether the
+                             background condition name is registered in the
+                             models background list.
+        '''
         # Assure that the condition is a string
-        if not isinstance(bg_condition, str):
-            raise TypeError('A background condition name must be a string.')
+        self.__check_type(bg_condition, str,
+                          'A background condition name must be a string.')
+
+        # Assure that the condition is actually in the background of the model
+        if check_if_in_model:
+            self.__check_if_in_model(bg_condition, self.__background,
+                                     'background condition')
 
     def __verify_consequence(self, consequence, check_if_in_model=False):
         '''Verify a consequence.
@@ -315,10 +326,36 @@ class Model:
                              of consequences.
         '''
         # Assure that the name of the consequence is a string
-        if not isinstance(consequence, str):
-            raise TypeError('An consequence name must be a string.')
+        self.__check_type(consequence, str,
+                          'An consequence name must be a string.')
 
         # Assure that the consequence is actually a consequence of the model
-        if check_if_in_model and consequence not in self.__consequences:
-            raise KeyError('{} is no consequence of the model.'
-                           .format(consequence))
+        if check_if_in_model:
+            self.__check_if_in_model(consequence, self.__consequences,
+                                     'consequence')
+
+    def __check_type(self, obj, obj_type, error_msg):
+        '''A generic way for raising type errors.
+        This method raises a TypeError, if a given object does not match a given
+        type.
+
+        Arguments:
+        obj -- The object in question
+        obj_type -- The desired type of the object
+        error_msq -- The error message that will be shown when a TypeError is
+                     raised
+        '''
+        if not isinstance(obj, obj_type):
+            raise TypeError(error_msg)
+
+    def __check_if_in_model(self, obj, obj_list, obj_name):
+        '''Raise a KeyError, if a given object is not in a given list.
+
+        Argumens:
+        obj -- The object in question
+        obj_list -- The list in which the object should be
+        obj_name -- The name of the object (used to generate the error message
+                    printed by the KeyError)
+        '''
+        if obj not in obj_list:
+            raise KeyError('{} is no {} of the model.'.format(obj, obj_name))
