@@ -91,6 +91,33 @@ class Model:
                 if "'{}'".format(action) in self.__mechanisms[consequence]:
                     self.__mechanisms[consequence] = []
 
+    def rename_action(self, action_old, action_new):
+        '''Renames action and changes the action name accordingly in
+        mechanism and intentions containing that action.
+
+        Arguments:
+        action_old -- Old action name.
+        action_new -- New action name.
+        '''
+
+        if self.__verify_action(action_old, check_if_in_model=True) and \
+            self.__verify_action(action_new):
+            self.__actions.remove(action_old)
+            self.__actions.append(action_new)
+
+        # Rename action within mechanism.
+        for consequence in self.__consequences:
+            # If action is part of a mechanism, rename action within.
+            if "'{}'".format(action_old) in self.__mechanisms[consequence]:
+                self.__mechanisms[consequence].remove("'{}'".format(action_old))
+                self.__mechanisms[consequence].append("'{}'".format(action_new))
+
+        # Rename action within intentions.
+        self.__intentions[action_old].remove(action_old)
+        self.__intentions[action_old].append(action_new)
+        self.__intentions[action_new] = self.__intentions[action_old]
+        del self.__intentions[action_old]
+
     # BACKGROUND ---------------------------------------------------------------
     def add_background(self, *background):
         '''Add one or more background conditions to the model.
@@ -133,6 +160,27 @@ class Model:
                 if "'{}'".format(bg_condition) in self.__mechanisms[consequence]:
                     self.__mechanisms[consequence] = []
 
+    def rename_background(self, bg_old, bg_new):
+        '''Renames background and changes the background name accordingly in
+        mechanism containing that background.
+
+        Arguments:
+        bg_old -- Old background name.
+        bg_new -- New background name.
+        '''
+
+        if self.__verify_background(bg_old, check_if_in_model=True) and \
+            self.__verify_background(bg_new):
+            self.__background.remove(bg_old)
+            self.__background.append(bg_new)
+
+        # Rename backround within mechanism.
+        for consequence in self.__consequences:
+            # If background is part of a mechanism, rename background within.
+            if "'{}'".format(bg_old) in self.__mechanisms[consequence]:
+                self.__mechanisms[consequence].remove("'{}'".format(bg_old))
+                self.__mechanisms[consequence].append("'{}'".format(bg_new))
+
     # CONSEQUENCES -------------------------------------------------------------
     def add_consequences(self, *consequences):
         '''Add one or more consequences to the model.
@@ -171,6 +219,11 @@ class Model:
             else:
                 continue
 
+            # TODO: Update mechanisms which contain the consequence CHECK
+            # If consequence is part of a mechanism, delete mechanism.
+            if "'{}'".format(consequence) in self.__mechanisms[consequence]:
+                del self.__mechanisms[consequence]
+
             # Remove the utilities of the consequence from the model
             for cons_string in [consequence, self.__not_string(consequence)]:
                 if cons_string in self.__utilities:
@@ -181,10 +234,38 @@ class Model:
                 if consequence in intentions:
                     intentions.remove(consequence)
 
-            # TODO: Update mechanisms which contain the consequence CHECK
-            # If consequence is part of a mechanism, delete mechanism.
-            if "'{}'".format(consequence) in self.__mechanisms[consequence]:
-                del self.__mechanisms[consequence]
+    def rename_consequence(self, con_old, con_new):
+        '''Renames consequence and changes the consequence name accordingly in
+        mechanisms, utilities and intentions containing that consequence.
+
+        Arguments:
+        con_old -- Old consequence name.
+        con_new -- New consequence name.
+        '''
+
+        if self.__verify_consequence(con_old, check_if_in_model=True) and \
+            self.__verify_consequence(con_new):
+            self.__consequences.remove(con_old)
+            self.__consequences.append(con_new)
+
+        # Rename consequence within mechanism.
+        for consequence in self.__consequences:
+            # If consequence is part of a mechanism, rename consequence within.
+            if "'{}'".format(con_old) in self.__mechanisms[consequence]:
+                self.__mechanisms[consequence].remove("'{}'".format(con_old))
+                self.__mechanisms[consequence].append("'{}'".format(con_new))
+        self.__mechanisms[con_new] = self.__mechanisms[con_old]
+        del self.__mechanisms[con_old]
+
+        # Rename consequence within utilities.
+        self.__utilities[con_new] = self.__utilities[con_old]
+        del self.__utilities[con_old]
+
+        # Rename consequence within intentions.
+        for action in self.__actions:
+            if con_old in self.__intentions[action]:
+                self.__intentions[action].remove(con_old)
+                self.__intentions[action].append(con_new)
 
     # MECHANISMS ---------------------------------------------------------------
     def add_mechanism(self, consequence, *mechanism):
