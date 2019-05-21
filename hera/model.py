@@ -187,7 +187,7 @@ class Model:
         var_valid = []
         for variable in mechanism:
             var_valid.append(isinstance(variable, str))
-        if not all(var_valid): #TODO validity must be cons, 
+        if not all(var_valid): #TODO validity must be cons,
             raise TypeError('The components of a mechanism must be a string')
 
         mecha = []
@@ -200,9 +200,9 @@ class Model:
             # If the variable is not already in the mechanism,
             # add it
             if variable not in self.__mechanisms[consequence]:
-                mecha.append(variable)   
+                mecha.append(variable)
         self.__mechanisms[consequence]=self.__and_string(mecha)
-        print(self.__mechanisms[consequence]) 
+        print(self.__mechanisms[consequence])
 
     def remove_mechanism(self, mechanism):
         # TODO
