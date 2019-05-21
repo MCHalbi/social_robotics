@@ -32,13 +32,13 @@ class Model:
         return json.dumps(model_dict, indent=4)
 
     def reset(self):
-        '''Deletes all lists. Resets model. Description stays.'''
-        self.__actions = []
-        self.__background = []
-        self.__consequences = []
-        self.__mechanisms.clear()
-        self.__utilities.clear()
-        self.__intentions.clear()
+        '''Reset the model.
+        Clear all lists and dictionaries, only the description stays unchanged.
+        '''
+        for var in vars(self):
+            attr = getattr(self, var)
+            if isinstance(attr, list) or isinstance(attr, dict):
+                attr.clear()
 
     # DESCRIPTION --------------------------------------------------------------
     def set_description(self, description):
@@ -109,8 +109,8 @@ class Model:
         action_new -- New action name.
         '''
 
-        if self.__verify_action(action_old, check_if_in_model=True) and \
-            self.__verify_action(action_new):
+        if (self.__verify_action(action_old, True) and
+                self.__verify_action(action_new)):
             self.__actions.remove(action_old)
             self.__actions.append(action_new)
 
@@ -423,16 +423,6 @@ class Model:
     @staticmethod
     def __not_string(variable):
         return 'Not(\'' + variable + '\')'
-
-    #OLD: might still be useful, do not delete yet
-    #@staticmethod
-    #def __and_string(*variables):
-    #    string = ''
-    #    if len(*variables) == 1:
-    #        return '\'' + ''.join(variables[0]) + '\''
-    #    else:
-    #        string += '\',\''.join(*variables)
-    #        return 'And(\'' + string + '\')'
 
     # PRIVATE HELPER METHODS ---------------------------------------------------
     def __verify_description(self, description):
