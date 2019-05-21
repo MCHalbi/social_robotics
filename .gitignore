@@ -1,1 +1,5 @@
+# Pycache files
 *.pyc
+
+# Swap files
+*.swp
