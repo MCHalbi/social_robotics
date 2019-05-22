@@ -108,11 +108,13 @@ class Model:
         action_old -- Old action name.
         action_new -- New action name.
         '''
+        # Check, if there is an action with the old name in the model and
+        # typecheck the new name.
+        self.__verify_action(action_old, True)
+        self.__verify_action(action_new)
 
-        if (self.__verify_action(action_old, True) and
-                self.__verify_action(action_new)):
-            self.__actions.remove(action_old)
-            self.__actions.append(action_new)
+        self.__actions.remove(action_old)
+        self.__actions.append(action_new)
 
         # Rename action within mechanism.
         for consequence in self.__consequences:
@@ -234,7 +236,7 @@ class Model:
                 del self.__mechanisms[consequence]
 
             # Remove the utilities of the consequence from the model
-            for cons_string in [consequence, self.__not_string(consequence)]:
+            for cons_string in [consequence, self.__not_str(consequence)]:
                 if cons_string in self.__utilities:
                     del self.__utilities[consequence]
 
@@ -353,7 +355,7 @@ class Model:
         # Adjust the consequence name if the utility of not reaching the
         # consequence is to be set
         if not affirmation:
-            consequence = self.__not_string(consequence)
+            consequence = self.__not_str(consequence)
 
         self.__utilities[consequence] = value
 
@@ -369,7 +371,7 @@ class Model:
                            to be removed.
         '''
         if not affirmation:
-            consequence = self.__not_string(consequence)
+            consequence = self.__not_str(consequence)
 
         # Remove the utility of the consequence, if it exists
         if consequence in self.__utilities:
@@ -421,8 +423,12 @@ class Model:
 
     # STRING MODIFIERS ---------------------------------------------------------
     @staticmethod
-    def __not_string(variable):
-        return 'Not(\'' + variable + '\')'
+    def __not_str(variable):
+        return 'Not(' + self.__quote_str(variable) + ')'
+
+    @staticmethod
+    def __quote_str(variable):
+        return '\'' + variable + '\''
 
     # PRIVATE HELPER METHODS ---------------------------------------------------
     def __verify_description(self, description):
