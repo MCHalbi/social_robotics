@@ -40,6 +40,14 @@ class Model:
             if isinstance(attr, list) or isinstance(attr, dict):
                 attr.clear()
 
+    def check(self):
+        '''Checks if all consequences can be reached (mechanism exists).'''
+        for consequence in self.__consequences:
+            if consequence not in self.__mechanisms:
+                raise RuntimeError('Consequence {} cannot be reached since '
+                                   + 'there is no mechanism for it.'
+                                   .format(consequence))
+
     # DESCRIPTION --------------------------------------------------------------
     def set_description(self, description):
         '''Set the description of the model.
@@ -50,10 +58,6 @@ class Model:
         self.__verify_description(description)
 
         self.__description = description
-
-    def get_description(self):
-        '''Get the description of the model.'''
-        return self.__description
 
     # ACTIONS ------------------------------------------------------------------
     def add_actions(self, *actions):
@@ -77,8 +81,8 @@ class Model:
     def remove_actions(self, *actions):
         '''Remove one or more actions from list of actions.
         If there is no such action in the list, this will be ignored.
-        This also removes the utilities of this action and mechanism, where the
-        action took part of, from the model to keep the model consistent.
+        This also removes the intentions of this action and removes it from all
+        mechanisms to keep the model consistent.
 
         Arguments:
         *actions -- One or multiple strings that represent action names.
@@ -94,11 +98,8 @@ class Model:
             # Remove the intentions of the action from the model.
             del self.__intentions[action]
 
-            # TODO: Update mechanisms which contain the action CHECK
-            for consequence in self.__consequences:
-                # If action is part of a mechanism, remove mechanism.
-                if "'{}'".format(action) in self.__mechanisms[consequence]:
-                    self.__mechanisms[consequence] = []
+            # Remove the action from all mechanisms (if it occurs)
+            self.__remove_item_from_list_dict(action, self.__mechanisms)
 
     def rename_action(self, action_old, action_new):
         '''Renames action and changes the action name accordingly in
@@ -113,21 +114,15 @@ class Model:
         self.__verify_action(action_old, True)
         self.__verify_action(action_new)
 
-        self.__actions.remove(action_old)
-        self.__actions.append(action_new)
+        self.__rename_item_in_list(action_old, action_new, self.__actions)
 
-        # Rename action within mechanism.
-        for consequence in self.__consequences:
-            # If action is part of a mechanism, rename action within.
-            if "'{}'".format(action_old) in self.__mechanisms[consequence]:
-                self.__mechanisms[consequence].remove("'{}'".format(action_old))
-                self.__mechanisms[consequence].append("'{}'".format(action_new))
+        # Rename action within mechanisms
+        self.__rename_item_in_list_dict(action_old, action_new,
+                                        self.__mechanisms)
 
-        # Rename action within intentions.
-        self.__intentions[action_old].remove(action_old)
-        self.__intentions[action_old].append(action_new)
-        self.__intentions[action_new] = self.__intentions[action_old]
-        del self.__intentions[action_old]
+        # Rename action within intentions
+        self.__rename_item_in_list_dict(action_old, action_new,
+                                        self.__intentions, True)
 
     # BACKGROUND ---------------------------------------------------------------
     def add_background(self, *background):
@@ -141,12 +136,10 @@ class Model:
         '''
         for bg_condition in background:
             # Assure that the condition is a string
-            if not isinstance(bg_condition, str):
-                raise TypeError('A background condition name must be a string.')
+            self.__verify_background(bg_condition)
 
             # Add the background condition to the background list
-            if bg_condition not in self.__background:
-                self.__background.append(bg_condition)
+            self.__append_if_new(bg_condition, self.__background)
 
     def remove_background(self, *background):
         '''Remove one or more background conditions from the model.
@@ -165,32 +158,26 @@ class Model:
             else:
                 continue
 
-            # TODO: Update mechanisms which contain the background CHECK
-            for consequence in self.__consequences:
-                # If background is part of a mechanism, remove mechanism.
-                if "'{}'".format(bg_condition) in self.__mechanisms[consequence]:
-                    self.__mechanisms[consequence] = []
+            # Update mechanisms which contain the background
+            self.__remove_item_from_list_dict(bg_condition, self.__mechanisms)
 
     def rename_background(self, bg_old, bg_new):
         '''Renames background and changes the background name accordingly in
         mechanism containing that background.
 
         Arguments:
-        bg_old -- Old background name.
-        bg_new -- New background name.
+        bg_old -- Old name of the background condition
+        bg_new -- New name of the background condition
         '''
+        # Check, if there is a background condition with the old name in the
+        # model and typecheck the new name.
+        self.__verify_background(bg_old, check_if_in_model=True)
+        self.__verify_background(bg_new)
 
-        if self.__verify_background(bg_old, check_if_in_model=True) and \
-            self.__verify_background(bg_new):
-            self.__background.remove(bg_old)
-            self.__background.append(bg_new)
+        self.__rename_item_in_list(bg_old, bg_new, self.__background)
 
-        # Rename backround within mechanism.
-        for consequence in self.__consequences:
-            # If background is part of a mechanism, rename background within.
-            if "'{}'".format(bg_old) in self.__mechanisms[consequence]:
-                self.__mechanisms[consequence].remove("'{}'".format(bg_old))
-                self.__mechanisms[consequence].append("'{}'".format(bg_new))
+        # Rename background within mechanisms
+        self.__rename_item_in_list_dict(bg_old, bg_new, self.__mechanisms)
 
     # CONSEQUENCES -------------------------------------------------------------
     def add_consequences(self, *consequences):
@@ -202,16 +189,10 @@ class Model:
         '''
         for consequence in consequences:
             # Assure that the consequence is a string
-            if not isinstance(consequence, str):
-                raise TypeError('A consequence name must be a string.')
+            self.__verify_consequence(consequence)
 
             # If it does not already exists, add the consequence to the list
-            if consequence not in self.__consequences:
-                self.__consequences.append(consequence)
-
-            # Instantiate the mechanisms of the consequences with empty
-                # mechanism
-                self.__mechanisms[consequence] = [] #TODO CHECK
+            self.__append_if_new(consequence, self.__consequences)
 
     def remove_consequences(self, *consequences):
         '''Remove one or multiple consequences from the model.
@@ -230,20 +211,17 @@ class Model:
             else:
                 continue
 
-            # TODO: Update mechanisms which contain the consequence CHECK
             # If consequence is part of a mechanism, delete mechanism.
-            if "'{}'".format(consequence) in self.__mechanisms[consequence]:
+            if consequence in self.__mechanisms:
                 del self.__mechanisms[consequence]
 
             # Remove the utilities of the consequence from the model
             for cons_string in [consequence, self.__not_str(consequence)]:
                 if cons_string in self.__utilities:
-                    del self.__utilities[consequence]
+                    del self.__utilities[cons_string]
 
             # Remove the consequence from all intentions
-            for intentions in self.__intentions.items():
-                if consequence in intentions:
-                    intentions.remove(consequence)
+            self.__remove_item_from_list_dict(consequence, self.__intentions)
 
     def rename_consequence(self, con_old, con_new):
         '''Renames consequence and changes the consequence name accordingly in
@@ -253,71 +231,45 @@ class Model:
         con_old -- Old consequence name.
         con_new -- New consequence name.
         '''
+        # Check, if there is a consequence with the old name in the model and
+        # typecheck the new name.
+        self.__verify_consequence(con_old, True)
+        self.__verify_consequence(con_new)
 
-        if self.__verify_consequence(con_old, check_if_in_model=True) and \
-            self.__verify_consequence(con_new):
-            self.__consequences.remove(con_old)
-            self.__consequences.append(con_new)
+        self.__rename_item_in_list(con_old, con_new, self.__consequences)
 
-        # Rename consequence within mechanism.
-        for consequence in self.__consequences:
-            # If consequence is part of a mechanism, rename consequence within.
-            if "'{}'".format(con_old) in self.__mechanisms[consequence]:
-                self.__mechanisms[consequence].remove("'{}'".format(con_old))
-                self.__mechanisms[consequence].append("'{}'".format(con_new))
-        self.__mechanisms[con_new] = self.__mechanisms[con_old]
-        del self.__mechanisms[con_old]
+        # Rename consequence within mechanisms
+        self.__rename_item_in_list_dict(con_old, con_new, self.__mechanisms,
+                                        True)
 
-        # Rename consequence within utilities.
-        self.__utilities[con_new] = self.__utilities[con_old]
-        del self.__utilities[con_old]
+        # Rename consequence within utilities
+        self.__utilities[con_new] = self.__utilities.pop(con_old)
 
-        # Rename consequence within intentions.
-        for action in self.__actions:
-            if con_old in self.__intentions[action]:
-                self.__intentions[action].remove(con_old)
-                self.__intentions[action].append(con_new)
+        # Rename consequence within intentions
+        self.__rename_item_in_list_dict(con_old, con_new, self.__intentions)
 
     # MECHANISMS ---------------------------------------------------------------
-    def add_mechanism(self, consequence, *mechanism):
+    def add_mechanisms(self, consequence, *variables):
         '''Add one or more variables to the mechanism of a consequence.
         If the variable is already in the list, it will not be added twice.
 
         Arguments:
         consequence -- The consequence for which the mechanism should be added.
-        *mechanism -- One or multiple strings that represent a mechanism.
+        *mechanisms -- One or multiple strings that represent a mechanism.
         '''
         self.__verify_consequence(consequence, True)
 
-        # Assure that the variables are all valid (exist in the model).
-        for variable in mechanism:
-            var_valid = []
-            var_valid.append(variable in self.__actions)
-            var_valid.append(variable in self.__background)
-            var_valid.append(variable in self.__consequences)
-            if not any(var_valid):
-                raise TypeError('The components of a mechanism ' +
-                                'must be part of the model.')
-            else:
-            # If it does not already exists, add the variable to the list.
-                if variable not in self.__mechanisms[consequence]:
-                    self.__mechanisms[consequence].append("'{}'".format(variable))
+        # Assure that the variables are all valid (exist in the model)
+        all_vars = self.__actions + self.__background + self.__consequences
+        for variable in variables:
+            if variable not in all_vars:
+                raise ValueError('The components of a mechanism must be part '
+                                 + 'of the model.')
 
-        # OLD: might still be useful, do not delete yet
-        # mecha = []
-        # if "And" in self.__mechanisms[consequence]:
-        #     mecha=self.__mechanisms[consequence][5:-2].split('\',\'')
-        # elif self.__mechanisms[consequence]!=[]:
-        #     mecha.append(self.__mechanisms[consequence])
+            # If it does not already exists, add the variable to the list
+            self.__append_if_new(variable, self.__mechanisms[consequence])
 
-        #for variable in mechanism:
-        #    # If the variable is not already in the mechanism,
-        #    # add it
-        #    if variable not in self.__mechanisms[consequence]:
-        #        mecha.append(variable)
-        #self.__mechanisms[consequence]=self.__and_string(mecha)
-
-    def remove_mechanism(self, consequence, *mechanism):
+    def remove_mechanisms(self, consequence, *mechanism):
         '''Remove one or more intended variables of the mechanism of a
         consequence.
 
@@ -343,13 +295,11 @@ class Model:
         value -- The value of the utility.
         affirmation -- True, if the utility of the consequence itself is set.
                        False, if the utlility of not reaching the consequence is
-                           to be set.
+                       to be set.
         '''
-        # Assure that the value of the utility is an integer
-        if not isinstance(value, int):
-            raise TypeError('The utility of a consequence must be an integer '
-                            + 'value.')
-
+        # Assure that the consequence is in the model and typechek the value of
+        # the utility and the consequence
+        self.__verify_utility(value)
         self.__verify_consequence(consequence, True)
 
         # Adjust the consequence name if the utility of not reaching the
@@ -392,11 +342,10 @@ class Model:
 
             # If the consequence is not already in the intention of the action,
             # add it
-            if consequence not in self.__intentions[action]:
-                self.__intentions[action].append(consequence)
+            self.__append_if_new(consequence, self.__intentions[action])
 
     def remove_intentions(self, action, *consequences):
-        '''Remove one or more intended consequences of an action.
+        '''Remove one or more consequences of an action.
         It is not possible, to remove the action itself from the intentions of
         an action.
 
@@ -412,25 +361,7 @@ class Model:
             if consequence in self.__intentions[action]:
                 self.__intentions[action].remove(consequence)
 
-    def check_model(self):
-        # TODO: Check if all consequences can be reached CHECK
-        '''Checks if all consequences can be reached (mechanism exists).'''
-        for consequence in self.__consequences:
-            if self.__mechanisms[consequence] == []:
-                # TODO: What error type is appropriate?
-                raise RuntimeError("Missing mechanism for consequence.")
-
-
-    # STRING MODIFIERS ---------------------------------------------------------
-    @staticmethod
-    def __not_str(variable):
-        return 'Not(' + self.__quote_str(variable) + ')'
-
-    @staticmethod
-    def __quote_str(variable):
-        return '\'' + variable + '\''
-
-    # PRIVATE HELPER METHODS ---------------------------------------------------
+    # VERIFICATION METHODS -----------------------------------------------------
     def __verify_description(self, description):
         '''Verify a description.
         Raise an error, if the description is not valid.
@@ -490,7 +421,16 @@ class Model:
             self.__check_if_in_model(consequence, self.__consequences,
                                      'consequence')
 
-    def __check_type(self, obj, obj_type, error_msg):
+    def __verify_utility(self, utility):
+        '''Verify a utility.
+        Raise an error, if the utility is not valid.
+        '''
+        # Assure that the name of the consequence is a string
+        self.__check_type(utility, int,
+                          'A utility name must be an integer value.')
+
+    @staticmethod
+    def __check_type(obj, obj_type, error_msg):
         '''A generic way for raising type errors.
         This method raises a TypeError, if a given object does not match a given
         type.
@@ -504,7 +444,8 @@ class Model:
         if not isinstance(obj, obj_type):
             raise TypeError(error_msg)
 
-    def __check_if_in_model(self, obj, obj_list, obj_name):
+    @staticmethod
+    def __check_if_in_model(obj, obj_list, obj_name):
         '''Raise a KeyError, if a given object is not in a given list.
 
         Argumens:
@@ -515,3 +456,68 @@ class Model:
         '''
         if obj not in obj_list:
             raise KeyError('{} is no {} of the model.'.format(obj, obj_name))
+
+    # STRING MODIFIERS ---------------------------------------------------------
+    @staticmethod
+    def __not_str(variable):
+        return 'Not(\'' + variable + '\')'
+
+    @staticmethod
+    def __quote_str(variable):
+        return '\'' + variable + '\''
+
+    # LIST AND DICTIONARY MODIFIERS --------------------------------------------
+    @staticmethod
+    def __remove_item_from_list_dict(item, list_dict):
+        '''Remove an item from all lists in a dictionary of lists.
+
+        Arguments:
+        item -- A item that's to be removed from all lists in the dictionary
+        list_dict -- A dictionary of lists
+        '''
+        for variable, item_list in list_dict.items():
+            if item in item_list:
+                list_dict[variable].remove(item)
+
+    @staticmethod
+    def __rename_item_in_list_dict(item_old, item_new, list_dict,
+                                   rename_keys=False):
+        '''Replace all occurences of an item in all lists in a dictionary of
+        lists.
+
+        Arguments:
+        item_old -- The item that's to be replaced
+        item_new -- The item that replaces the old item
+        list_dict -- A dictionary of lists
+        rename_keys -- If True, the replacement also affects the dict keys.
+        '''
+        # Rename the dict keys
+        if rename_keys:
+            list_dict[item_new] = list_dict.pop(item_old)
+
+        # Replace all occurences of the old item with the new item
+        for item_list in list_dict:
+            for pos, item in enumerate(item_list):
+                if item == item_old:
+                    item_list[pos] = item_new
+
+    @staticmethod
+    def __rename_item_in_list(item_old, item_new, item_list):
+        '''Replace an item in a list with another item.
+        This assumes that the item occurs exactly once in the list.
+
+        Arguments:
+        item_old --
+        item_new --
+        item_list --
+        '''
+        pos = item_list.index(item_old)
+        item_list[pos] = item_new
+
+    def __append_if_new(item, item_list)
+        if item not in item_list:
+            item_list.append(item)
+
+    def __remove_if_exists(item, item_list):
+        if item in item_list:
+
