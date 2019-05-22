@@ -162,7 +162,7 @@ class TestModel(unittest.TestCase):
         self.assertRaises(TypeError, self.test_model.rename_background,
                           42, 'B1')
         self.assertRaises(TypeError, self.test_model.rename_background,
-                          'B1', 42)
+                          'B2', 42)
         self.assertRaises(TypeError, self.test_model.rename_background,
                           42, 42)
         self.assertRaises(ValueError, self.test_model.rename_background,
@@ -224,7 +224,7 @@ class TestModel(unittest.TestCase):
                               'C3': ['B1', 'A2'], 'C4': ['A2']},
                              self.test_model._Model__mechanisms)
         self.assertDictEqual({'C5': 10, 'C2': -4, 'C3': 10, 'C4': -4,
-                              'Not(\'C5\')': 10, 'Not(\'C2\')': 4,
+                              'Not(\'C5\')': -10, 'Not(\'C2\')': 4,
                               'Not(\'C3\')': -10, 'Not(\'C4\')': 4},
                              self.test_model._Model__utilities)
         self.assertDictEqual({'A1': ['A1', 'C5'], 'A2': ['A2', 'C3'],
@@ -234,7 +234,7 @@ class TestModel(unittest.TestCase):
         self.assertRaises(TypeError, self.test_model.rename_consequence,
                           42, 'C1')
         self.assertRaises(TypeError, self.test_model.rename_consequence,
-                          'C1', 42)
+                          'C5', 42)
         self.assertRaises(TypeError, self.test_model.rename_consequence,
                           42, 42)
         self.assertRaises(ValueError, self.test_model.rename_consequence,

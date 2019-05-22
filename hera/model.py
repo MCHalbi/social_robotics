@@ -243,7 +243,9 @@ class Model:
                                         True)
 
         # Rename consequence within utilities
-        self.__utilities[con_new] = self.__utilities.pop(con_old)
+        self.__rename_key(con_old, con_new, self.__utilities)
+        self.__rename_key(self.__not_str(con_old), self.__not_str(con_new),
+                          self.__utilities)
 
         # Rename consequence within intentions
         self.__rename_item_in_list_dict(con_old, con_new, self.__intentions)
@@ -493,8 +495,7 @@ class Model:
             if item in item_list:
                 list_dict[variable].remove(item)
 
-    @staticmethod
-    def __rename_item_in_list_dict(item_old, item_new, list_dict,
+    def __rename_item_in_list_dict(self, item_old, item_new, list_dict,
                                    rename_keys=False):
         '''Replace all occurences of an item in all lists in a dictionary of
         lists.
@@ -507,10 +508,10 @@ class Model:
         '''
         # Rename the dict keys
         if rename_keys:
-            list_dict[item_new] = list_dict.pop(item_old)
+            self.__rename_key(item_old, item_new, list_dict)
 
         # Replace all occurences of the old item with the new item
-        for item_list in list_dict:
+        for key, item_list in list_dict.items():
             for pos, item in enumerate(item_list):
                 if item == item_old:
                     item_list[pos] = item_new
@@ -533,3 +534,7 @@ class Model:
         if item not in item_list:
             item_list.append(item)
 
+    @staticmethod
+    def __rename_key(old, new, dictionary):
+        if old in dictionary:
+            dictionary[new] = dictionary.pop(old)
