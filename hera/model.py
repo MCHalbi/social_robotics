@@ -259,12 +259,9 @@ class Model:
         '''
         self.__verify_consequence(consequence, True)
 
-        # Assure that the variables are all valid (exist in the model)
-        all_vars = self.__actions + self.__background + self.__consequences
         for variable in variables:
-            if variable not in all_vars:
-                raise ValueError('The components of a mechanism must be part '
-                                 + 'of the model.')
+            # Assure that the variable is valid (exist in the model)
+            self.__verify_variable(variable, True)
 
             # If it does not already exists, add the variable to the list
             self.__append_if_new(variable, self.__mechanisms[consequence])
@@ -429,6 +426,23 @@ class Model:
         self.__check_type(utility, int,
                           'A utility name must be an integer value.')
 
+    def __verify_variable(self, variable, check_if_in_model=False):
+        '''Verify a variable. This may be the name of an action, background
+        condition or a consequence.
+        Raise an error, if the consequence is not valid.
+
+        Arguments:
+        check_if_in_model -- True, if the method should check whether the
+                             variable is a variable of the model.
+        '''
+        # Assure that the name of the consequence is a string
+        self.__check_type(variable, str, 'An variable name must be a string.')
+
+        # Assure that the consequence is actually a consequence of the model
+        if check_if_in_model:
+            all_vars = self.__actions + self.__consequences + self.__background
+            self.__check_if_in_model(variable, all_vars, 'variable')
+
     @staticmethod
     def __check_type(obj, obj_type, error_msg):
         '''A generic way for raising type errors.
@@ -514,10 +528,8 @@ class Model:
         pos = item_list.index(item_old)
         item_list[pos] = item_new
 
-    def __append_if_new(item, item_list)
+    @staticmethod
+    def __append_if_new(item, item_list):
         if item not in item_list:
             item_list.append(item)
-
-    def __remove_if_exists(item, item_list):
-        if item in item_list:
 
