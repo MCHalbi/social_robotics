@@ -119,7 +119,7 @@ class TestModel(unittest.TestCase):
                              self.test_model._Model__intentions)
         # Error raising
         self.assertRaises(TypeError, self.test_model.rename_action, 42, 'A1')
-        self.assertRaises(TypeError, self.test_model.rename_action, 'A1', 42)
+        self.assertRaises(TypeError, self.test_model.rename_action, 'A4', 42)
         self.assertRaises(TypeError, self.test_model.rename_action, 42, 42)
         self.assertRaises(ValueError, self.test_model.rename_action, 'A4', 'A2')
         self.assertRaises(KeyError, self.test_model.rename_action, 'A1', 'A5')
@@ -132,7 +132,7 @@ class TestModel(unittest.TestCase):
         self.assertListEqual(['B1', 'B2'], self.test_model._Model__background)
 
         #Adding multiple background conditions + duplicate handling
-        self.test_model.background('B2', 'B3')
+        self.test_model.add_background('B2', 'B3')
         self.assertListEqual(['B1', 'B2', 'B3'],
                              self.test_model._Model__background)
 
@@ -265,7 +265,7 @@ class TestModel(unittest.TestCase):
     def test_remove_mechanisms(self):
         '''Test remove_mechanism method.'''
         # Remove single mechanism
-        self.test_model.remove_mechanism('C1', 'B1')
+        self.test_model.remove_mechanisms('C1', 'B1')
         self.assertDictEqual({'C1': ['A1'], 'C2': ['A1'],
                               'C3': ['B1', 'A2'], 'C4': ['A2']},
                              self.test_model._Model__mechanisms)
@@ -286,7 +286,7 @@ class TestModel(unittest.TestCase):
         # Set a simple utility
         self.test_model.set_utility('C1', 42)
         self.assertDictEqual({'C1': 42, 'C2': -4, 'C3': 10, 'C4': -4,
-                              'Not(\'C1\')': 10, 'Not(\'C2\')': 4,
+                              'Not(\'C1\')': -10, 'Not(\'C2\')': 4,
                               'Not(\'C3\')': -10, 'Not(\'C4\')': 4},
                              self.test_model._Model__utilities)
 
@@ -307,7 +307,7 @@ class TestModel(unittest.TestCase):
         # Remove a simple utility
         self.test_model.remove_utility('C1')
         self.assertDictEqual({'C2': -4, 'C3': 10, 'C4': -4,
-                              'Not(\'C1\')': 10, 'Not(\'C2\')': 4,
+                              'Not(\'C1\')': -10, 'Not(\'C2\')': 4,
                               'Not(\'C3\')': -10, 'Not(\'C4\')': 4},
                              self.test_model._Model__utilities)
 
@@ -350,7 +350,8 @@ class TestModel(unittest.TestCase):
                              self.test_model._Model__intentions)
 
         # Remove multiple intentions + duplicate handling
-        self.test_model.remove_intentions('A1', 'C1', 'A1')
+        self.test_model._Model__intentions['A1'] = ['A1', 'C1', 'C2']
+        self.test_model.remove_intentions('A1', 'C1', 'C2', 'C3')
         self.assertDictEqual({'A1': ['A1'], 'A2': ['A2', 'C3'],
                               'A3': ['A3']},
                              self.test_model._Model__intentions)
