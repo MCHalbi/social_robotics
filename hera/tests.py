@@ -271,7 +271,7 @@ class TestModel(unittest.TestCase):
                              self.test_model._Model__mechanisms)
 
         # Remove multiple mechanisms + duplicate handling
-        self.test_model.remove_mechanism('C3', 'A2', 'B1')
+        self.test_model.remove_mechanisms('C3', 'A2', 'B1')
         self.assertDictEqual({'C1': ['A1'], 'C2': ['A1'],
                               'C3': [], 'C4': ['A2']},
                              self.test_model._Model__mechanisms)

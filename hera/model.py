@@ -278,8 +278,8 @@ class Model:
         self.__verify_consequence(consequence, True)
 
         for variable in mechanism:
-            if "'{}'".format(variable) in self.__mechanisms[consequence]:
-                self.__mechanisms[consequence].remove("'{}'".format(variable))
+            if variable in self.__mechanisms[consequence]:
+                self.__mechanisms[consequence].remove(variable)
             else:
                 continue
 
