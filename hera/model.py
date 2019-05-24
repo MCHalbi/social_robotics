@@ -1,4 +1,5 @@
-# Author: Lukas Halbritter <halbritl@informatik.uni-freiburg.de>
+# Authors: Lukas Halbritter <halbritl@informatik.uni-freiburg.de>,
+#          Windy Phung <phungw@informatik.uni-freiburg.de>
 # Copyright 2019
 '''This module provides the functionality to build hera models.'''
 import json
@@ -43,7 +44,7 @@ class Model:
     def check(self):
         '''Checks if all consequences can be reached (mechanism exists).'''
         for consequence in self.__consequences:
-            if consequence not in self.__mechanisms:
+            if self.__mechanisms[consequence] == []:
                 raise RuntimeError('Consequence {} cannot be reached since '
                                    + 'there is no mechanism for it.'
                                    .format(consequence))
@@ -193,6 +194,8 @@ class Model:
 
             # If it does not already exists, add the consequence to the list
             self.__append_if_new(consequence, self.__consequences)
+
+            self.__mechanisms[consequence] = []
 
     def remove_consequences(self, *consequences):
         '''Remove one or multiple consequences from the model.
