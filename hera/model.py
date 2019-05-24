@@ -3,6 +3,7 @@
 # Copyright 2019
 '''This module provides the functionality to build hera models.'''
 import json
+from ethics.semantics import CausalModel
 
 class Model:
     '''This class represents a Utility-based Causal Agency Models.'''
@@ -17,21 +18,45 @@ class Model:
         self.__intentions = {}
 
     def __repr__(self):
-        '''Return a json-formatted string which represents the model.'''i
-        return model_dict = {
+        '''Return a json-formatted string which represents the model.'''
+        mechanisms = {}
+        for key, mech_list in self.__mechanisms:
+            quoted_mechs = [self.__quote_str(mech) for mech in mech_list]
+            mechanisms[key] = self.__conjunct_list(quoted_mechs)
+
+        model_dict = {
             'description': self.__description,
 
             'actions': self.__actions,
             'background': self.__background,
             'consequences': self.__consequences,
 
-            'mechanisms': self.__mechanisms,
+            'mechanisms': mechanisms,
             'utilities': self.__utilities,
             'intentions': self.__intentions,
             }
 
+        return json.dumps(model_dict)
+
     def __str__(self):
-        return json.dumps(repr(self), indent=4)
+        mechanisms = {}
+        for key, mech_list in self.__mechanisms:
+            quoted_mechs = [self.__quote_str(mech) for mech in mech_list]
+            mechanisms[key] = self.__conjunct_list(quoted_mechs)
+
+        model_dict = {
+            'description': self.__description,
+
+            'actions': self.__actions,
+            'background': self.__background,
+            'consequences': self.__consequences,
+
+            'mechanisms': mechanisms,
+            'utilities': self.__utilities,
+            'intentions': self.__intentions,
+            }
+
+        return json.dumps(model_dict, indent=4)
 
     def reset(self):
         '''Reset the model.
@@ -49,13 +74,12 @@ class Model:
                 raise RuntimeError('Consequence {} cannot be reached since '
                                    .format(consequence)
                                    + 'there is no mechanism for it.')
-    
-    def export(self):
-        ex = self.__repr__() 
-        print(ex)
 
-    def export(self):
-        return json.dumps(repr(self))
+    def export(self, assignments):
+        # TODO: Export to temporary json file
+        # TODO: Import json into CausalModel object
+        # TODO: Remove temporary json file
+        pass
 
     # DESCRIPTION --------------------------------------------------------------
     def set_description(self, description):
@@ -548,3 +572,11 @@ class Model:
     def __rename_key(old, new, dictionary):
         if old in dictionary:
             dictionary[new] = dictionary.pop(old)
+
+    @staticmethod
+    def __conjunct_list(str_list):
+        curr = str_list.pop(0)
+        for string in str_list:
+            curr = 'And(' + curr + ', ' + string + ')'
+
+        return curr
