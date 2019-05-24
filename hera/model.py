@@ -45,8 +45,12 @@ class Model:
         for consequence in self.__consequences:
             if consequence not in self.__mechanisms:
                 raise RuntimeError('Consequence {} cannot be reached since '
-                                   + 'there is no mechanism for it.'
-                                   .format(consequence))
+                                   .format(consequence)
+                                   + 'there is no mechanism for it.')
+    
+    def export(self):
+        ex = self.__repr__() 
+        print(ex)
 
     # DESCRIPTION --------------------------------------------------------------
     def set_description(self, description):
@@ -193,6 +197,8 @@ class Model:
 
             # If it does not already exists, add the consequence to the list
             self.__append_if_new(consequence, self.__consequences)
+
+            #self.__mechanisms[consequence] = []
 
     def remove_consequences(self, *consequences):
         '''Remove one or multiple consequences from the model.
@@ -511,7 +517,7 @@ class Model:
             self.__rename_key(item_old, item_new, list_dict)
 
         # Replace all occurences of the old item with the new item
-        for key, item_list in list_dict.items():
+        for item_list in list_dict.items():
             for pos, item in enumerate(item_list):
                 if item == item_old:
                     item_list[pos] = item_new
