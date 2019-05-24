@@ -47,8 +47,12 @@ class Model:
         for consequence in self.__consequences:
             if self.__mechanisms[consequence] == []:
                 raise RuntimeError('Consequence {} cannot be reached since '
-                                   + 'there is no mechanism for it.'
-                                   .format(consequence))
+                                   .format(consequence)
+                                   + 'there is no mechanism for it.')
+    
+    def export(self):
+        ex = self.__repr__() 
+        print(ex)
 
     def export(self):
         return json.dumps(repr(self))
@@ -517,7 +521,7 @@ class Model:
             self.__rename_key(item_old, item_new, list_dict)
 
         # Replace all occurences of the old item with the new item
-        for key, item_list in list_dict.items():
+        for item_list in list_dict.items():
             for pos, item in enumerate(item_list):
                 if item == item_old:
                     item_list[pos] = item_new
