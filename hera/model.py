@@ -281,9 +281,8 @@ class Model:
 
         for variable in mechanism:
             if variable in self.__mechanisms[consequence]:
+                # TODO: del self.__mechanisms[consequence] ?
                 self.__mechanisms[consequence].remove(variable)
-            else:
-                continue
 
     # UTLILITIES ---------------------------------------------------------------
     def set_utility(self, consequence, value, affirmation=True):
