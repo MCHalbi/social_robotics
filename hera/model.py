@@ -17,8 +17,8 @@ class Model:
         self.__intentions = {}
 
     def __repr__(self):
-        '''Return a json-formatted string which represents the model.'''
-        model_dict = {
+        '''Return a json-formatted string which represents the model.'''i
+        return model_dict = {
             'description': self.__description,
 
             'actions': self.__actions,
@@ -30,7 +30,8 @@ class Model:
             'intentions': self.__intentions,
             }
 
-        return json.dumps(model_dict, indent=4)
+    def __str__(self):
+        return json.dumps(repr(self), indent=4)
 
     def reset(self):
         '''Reset the model.
@@ -48,6 +49,9 @@ class Model:
                 raise RuntimeError('Consequence {} cannot be reached since '
                                    + 'there is no mechanism for it.'
                                    .format(consequence))
+
+    def export(self):
+        return json.dumps(repr(self))
 
     # DESCRIPTION --------------------------------------------------------------
     def set_description(self, description):
