@@ -510,11 +510,40 @@ class Model:
     # STRING MODIFIERS ---------------------------------------------------------
     @staticmethod
     def __not_str(variable):
+        '''Reuturn a string of the form
+            Not('v')
+        for a given variable v.
+
+        Arguments:
+        variable -- A variable string
+        '''
         return 'Not(\'' + variable + '\')'
 
     @staticmethod
     def __quote_str(variable):
+        '''Reuturn a string of the form
+            'v'
+        for a given variable v.
+
+        Arguments:
+        variable -- A variable string
+        '''
         return '\'' + variable + '\''
+
+    @staticmethod
+    def __conjunct_list(str_list):
+        '''Create a conjunction string of the form
+            And( ... And(And(l1, l2), l3) ..., ln)
+        from a list of string literals.
+
+        Arguments:
+        str_list -- A list of strings literals
+        '''
+        curr = str_list.pop(0)
+        for string in str_list:
+            curr = 'And(' + curr + ', ' + string + ')'
+
+        return curr
 
     # LIST AND DICTIONARY MODIFIERS --------------------------------------------
     @staticmethod
@@ -556,27 +585,34 @@ class Model:
         This assumes that the item occurs exactly once in the list.
 
         Arguments:
-        item_old --
-        item_new --
-        item_list --
+        item_old -- The old item
+        item_new -- The new item
+        item_list -- The list where the item should be replaced
         '''
         pos = item_list.index(item_old)
         item_list[pos] = item_new
 
     @staticmethod
     def __append_if_new(item, item_list):
+        '''Append an item to a list, if this item is not already present in the
+        list.
+
+        Arguments:
+        item -- An item
+        item_list -- A list
+        '''
         if item not in item_list:
             item_list.append(item)
 
     @staticmethod
     def __rename_key(old, new, dictionary):
+        '''Rename a key in a dictionary.
+
+        Arguments:
+        old -- The old key name
+        new -- The new key name
+        dictionary -- The dictionary in which the key name should be changed
+        '''
         if old in dictionary:
             dictionary[new] = dictionary.pop(old)
 
-    @staticmethod
-    def __conjunct_list(str_list):
-        curr = str_list.pop(0)
-        for string in str_list:
-            curr = 'And(' + curr + ', ' + string + ')'
-
-        return curr
