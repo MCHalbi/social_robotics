@@ -177,11 +177,18 @@ class TestModel(unittest.TestCase):
         self.test_model.add_consequences('C5')
         self.assertListEqual(['C1', 'C2', 'C3', 'C4', 'C5'],
                              self.test_model._Model__consequences)
+        self.assertDictEqual({'C1': ['B1', 'A1'], 'C2': ['A1'],
+                              'C3': ['B1', 'A2'], 'C4': ['A2'], 'C5': []},
+                        self.test_model._Model__mechanisms)
 
         # Add multiple consequences + duplicate handling
         self.test_model.add_consequences('C5', 'C6')
         self.assertListEqual(['C1', 'C2', 'C3', 'C4', 'C5', 'C6'],
                              self.test_model._Model__consequences)
+        self.assertDictEqual({'C1': ['B1', 'A1'], 'C2': ['A1'],
+                              'C3': ['B1', 'A2'], 'C4': ['A2'], 'C5': [],
+                              'C6': []},
+                        self.test_model._Model__mechanisms)
 
         # Error raising
         self.assertRaises(TypeError, self.test_model.add_consequences, 42)
