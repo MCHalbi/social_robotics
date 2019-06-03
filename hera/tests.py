@@ -101,6 +101,12 @@ class TestModel(unittest.TestCase):
         self.assertDictEqual({}, self.test_model._Model__utilities)
         self.assertDictEqual({}, self.test_model._Model__intentions)
 
+    def test_check(self):
+        pass
+
+    def test_export(self):
+        pass
+
     # DESCRITPION --------------------------------------------------------------
     def test_set_description(self):
         '''Test set_description method.'''

@@ -64,13 +64,33 @@ class Model:
         assignment -- A dictionary that assigns each action and background
                       condition a truth value
         '''
+        # Check, if the assignment is valid
+        if set(assignment.keys()) < set(self.__actions + self.__background):
+            raise KeyError('The following variables have no assignment: {}'
+                           .format(set(self.__actions + self.__background) -
+                                   set(assignment.keys())))
+
+        if set(assignment.keys()) != set(self.__actions + self.__background):
+            raise KeyError('The assignment contains variables which are not in '
+                           + 'the model: {}'
+                           .format(set(assignment.keys()) -
+                                   set(self.__actions + self.__background)))
+
+        if set(assignment.values()) != {0, 1}:
+            raise ValueError('Assignments must assign either 0 or 1 to a '
+                             + 'variable. {} are no valid assignment values.'
+                             .format(set(assignment.values()) - {0, 1}))
+
         filename = 'tmp_model.json'
 
+        # Export model to temporary json file
         with open(filename, 'w') as tmp_file:
             tmp_file.write(repr(self))
 
+        # Initialize a CausalModel with the json file
         hera_model = CausalModel(filename, assignment)
 
+        # Remove the temporary file
         os.remove(filename)
 
         return hera_model
