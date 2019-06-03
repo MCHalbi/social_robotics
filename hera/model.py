@@ -3,6 +3,7 @@
 # Copyright 2019
 '''This module provides the functionality to build hera models.'''
 import json
+import os
 from ethics.semantics import CausalModel
 
 class Model:
@@ -20,8 +21,9 @@ class Model:
     def __repr__(self):
         '''Return a json-formatted string which represents the model.'''
         mechanisms = {}
-        for key, mech_list in self.__mechanisms:
+        for key, mech_list in self.__mechanisms.items():
             quoted_mechs = [self.__quote_str(mech) for mech in mech_list]
+            quoted_mechs.sort()
             mechanisms[key] = self.__conjunct_list(quoted_mechs)
 
         model_dict = {
@@ -36,27 +38,7 @@ class Model:
             'intentions': self.__intentions,
             }
 
-        return json.dumps(model_dict)
-
-    def __str__(self):
-        mechanisms = {}
-        for key, mech_list in self.__mechanisms:
-            quoted_mechs = [self.__quote_str(mech) for mech in mech_list]
-            mechanisms[key] = self.__conjunct_list(quoted_mechs)
-
-        model_dict = {
-            'description': self.__description,
-
-            'actions': self.__actions,
-            'background': self.__background,
-            'consequences': self.__consequences,
-
-            'mechanisms': mechanisms,
-            'utilities': self.__utilities,
-            'intentions': self.__intentions,
-            }
-
-        return json.dumps(model_dict, indent=4)
+        return json.dumps(model_dict, indent=4, sort_keys=True)
 
     def reset(self):
         '''Reset the model.
@@ -75,11 +57,23 @@ class Model:
                                    .format(consequence)
                                    + 'there is no mechanism for it.')
 
-    def export(self, assignments):
-        # TODO: Export to temporary json file
-        # TODO: Import json into CausalModel object
-        # TODO: Remove temporary json file
-        pass
+    def export(self, assignment):
+        '''Export the model as a CausalModel from the ethics module.
+
+        Arguments:
+        assignment -- A dictionary that assigns each action and background
+                      condition a truth value
+        '''
+        filename = 'tmp_model.json'
+
+        with open(filename, 'w') as tmp_file:
+            tmp_file.write(repr(self))
+
+        hera_model = CausalModel(filename, assignment)
+
+        os.remove(filename)
+
+        return hera_model
 
     # DESCRIPTION --------------------------------------------------------------
     def set_description(self, description):
@@ -544,6 +538,9 @@ class Model:
         Arguments:
         str_list -- A list of strings literals
         '''
+        if not str_list:
+            return ''
+
         curr = str_list.pop(0)
         for string in str_list:
             curr = 'And(' + curr + ', ' + string + ')'
@@ -620,4 +617,3 @@ class Model:
         '''
         if old in dictionary:
             dictionary[new] = dictionary.pop(old)
-
