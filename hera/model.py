@@ -121,18 +121,18 @@ class Model:
         *actions -- One or multiple strings that represent action names.
         '''
         for action in actions:
+            # Typecheck the action
+            self.__verify_action(action)
+
             # If the action exists, remove it from the model.
-            # Else, skip further deletions
             if action in self.__actions:
                 self.__actions.remove(action)
-            else:
-                continue
 
-            # Remove the intentions of the action from the model.
-            del self.__intentions[action]
+                # Remove the intentions of the action from the model.
+                del self.__intentions[action]
 
-            # Remove the action from all mechanisms (if it occurs)
-            self.__remove_item_from_list_dict(action, self.__mechanisms)
+                # Remove the action from all mechanisms (if it occurs)
+                self.__remove_item_from_list_dict(action, self.__mechanisms)
 
     def rename_action(self, action_old, action_new):
         '''Renames action and changes the action name accordingly in
@@ -184,15 +184,16 @@ class Model:
                        conditions.
         '''
         for bg_condition in background:
+            # Typecheck the background consition
+            self.__verify_background(bg_condition)
+
             # If the condition exists, remove it from the model.
-            # Else, skip further deletions
             if bg_condition in self.__background:
                 self.__background.remove(bg_condition)
-            else:
-                continue
 
-            # Update mechanisms which contain the background
-            self.__remove_item_from_list_dict(bg_condition, self.__mechanisms)
+                # Update mechanisms which contain the background
+                self.__remove_item_from_list_dict(bg_condition,
+                                                  self.__mechanisms)
 
     def rename_background(self, bg_old, bg_new):
         '''Renames background and changes the background name accordingly in
@@ -239,24 +240,25 @@ class Model:
                          names.
         '''
         for consequence in consequences:
+            # Typecheck consequence
+            self.__verify_consequence(consequence)
+
             # If the consequence exists, remove it from the model.
-            # Else, skip further deletions
             if consequence in self.__consequences:
                 self.__consequences.remove(consequence)
-            else:
-                continue
 
-            # If consequence is part of a mechanism, delete mechanism.
-            if consequence in self.__mechanisms:
-                del self.__mechanisms[consequence]
+                # If consequence is part of a mechanism, delete mechanism.
+                if consequence in self.__mechanisms:
+                    del self.__mechanisms[consequence]
 
-            # Remove the utilities of the consequence from the model
-            for cons_string in [consequence, self.__not_str(consequence)]:
-                if cons_string in self.__utilities:
-                    del self.__utilities[cons_string]
+                # Remove the utilities of the consequence from the model
+                for cons_string in [consequence, self.__not_str(consequence)]:
+                    if cons_string in self.__utilities:
+                        del self.__utilities[cons_string]
 
-            # Remove the consequence from all intentions
-            self.__remove_item_from_list_dict(consequence, self.__intentions)
+                # Remove the consequence from all intentions
+                self.__remove_item_from_list_dict(consequence,
+                                                  self.__intentions)
 
     def rename_consequence(self, con_old, con_new):
         '''Renames consequence and changes the consequence name accordingly in
@@ -353,6 +355,9 @@ class Model:
                        False, if the utlility of not reaching the consequence is
                            to be removed.
         '''
+        # Typecheck consequence
+        self.__verify_consequence(consequence)
+
         if not affirmation:
             consequence = self.__not_str(consequence)
 
@@ -472,7 +477,7 @@ class Model:
                              variable is a variable of the model.
         '''
         # Assure that the name of the consequence is a string
-        self.__check_type(variable, str, 'An variable name must be a string.')
+        self.__check_type(variable, str, 'A variable name must be a string.')
 
         # Assure that the consequence is actually a consequence of the model
         if check_if_in_model:
