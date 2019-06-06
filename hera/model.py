@@ -76,7 +76,7 @@ class Model:
                            .format(set(assignment.keys()) -
                                    set(self.__actions + self.__background)))
 
-        if set(assignment.values()) != {0, 1}:
+        if not set(assignment.values()) <= {0, 1}:
             raise ValueError('Assignments must assign either 0 or 1 to a '
                              + 'variable. {} are no valid assignment values.'
                              .format(set(assignment.values()) - {0, 1}))
@@ -96,15 +96,19 @@ class Model:
         return hera_model
 
     # DESCRIPTION --------------------------------------------------------------
-    def set_description(self, description):
+    def rename_description(self, description):
         '''Set the description of the model.
 
         Arguments:
-        description -- A string that describes the model.
+        description -- A string that describes the model
         '''
         self.__verify_description(description)
 
         self.__description = description
+
+    def get_description(self):
+        '''Get the description of the model.'''
+        return self.__description
 
     # ACTIONS ------------------------------------------------------------------
     def add_actions(self, *actions):
@@ -160,21 +164,24 @@ class Model:
         # typecheck the new name.
         self.__verify_action(action_old, True)
         self.__verify_action(action_new)
-        
-        if action_new not in self.__actions:
-            self.__rename_item_in_list(action_old, action_new, self.__actions)
 
-            # Rename action within mechanisms
-            self.__rename_item_in_list_dict(action_old, action_new,
-                                            self.__mechanisms)
+        if action_new in self.__actions:
+            raise ValueError('New action name already exists. Replacing action'
+                             + ' must be new.')
 
-            # Rename action within intentions
-            self.__rename_item_in_list_dict(action_old, action_new,
-                                            self.__intentions, True)
-        else:
-            raise ValueError('New action name already exists. Replacing action'+
-            ' must be new.')
+        self.__rename_item_in_list(action_old, action_new, self.__actions)
 
+        # Rename action within mechanisms
+        self.__rename_item_in_list_dict(action_old, action_new,
+                                        self.__mechanisms)
+
+        # Rename action within intentions
+        self.__rename_item_in_list_dict(action_old, action_new,
+                                        self.__intentions, True)
+
+    def get_actions(self):
+        '''Get the actions of the model.'''
+        return self.__actions
 
     # BACKGROUND ---------------------------------------------------------------
     def add_background(self, *background):
