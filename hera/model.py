@@ -4,7 +4,7 @@
 '''This module provides the functionality to build hera models.'''
 import json
 import os
-#from ethics.semantics import CausalModel
+from ethics.semantics import CausalModel
 
 class Model:
     '''This class represents a Utility-based Causal Agency Models.'''
