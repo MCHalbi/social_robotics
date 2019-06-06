@@ -96,7 +96,7 @@ class Model:
         return hera_model
 
     # DESCRIPTION --------------------------------------------------------------
-    def rename_description(self, description):
+    def set_description(self, description):
         '''Set the description of the model.
 
         Arguments:
