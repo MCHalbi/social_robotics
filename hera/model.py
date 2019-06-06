@@ -4,7 +4,7 @@
 '''This module provides the functionality to build hera models.'''
 import json
 import os
-from ethics.semantics import CausalModel
+#from ethics.semantics import CausalModel
 
 class Model:
     '''This class represents a Utility-based Causal Agency Models.'''
@@ -160,16 +160,21 @@ class Model:
         # typecheck the new name.
         self.__verify_action(action_old, True)
         self.__verify_action(action_new)
+        
+        if action_new not in self.__actions:
+            self.__rename_item_in_list(action_old, action_new, self.__actions)
 
-        self.__rename_item_in_list(action_old, action_new, self.__actions)
+            # Rename action within mechanisms
+            self.__rename_item_in_list_dict(action_old, action_new,
+                                            self.__mechanisms)
 
-        # Rename action within mechanisms
-        self.__rename_item_in_list_dict(action_old, action_new,
-                                        self.__mechanisms)
+            # Rename action within intentions
+            self.__rename_item_in_list_dict(action_old, action_new,
+                                            self.__intentions, True)
+        else:
+            raise ValueError('New action name already exists. Replacing action'+
+            ' must be new.')
 
-        # Rename action within intentions
-        self.__rename_item_in_list_dict(action_old, action_new,
-                                        self.__intentions, True)
 
     # BACKGROUND ---------------------------------------------------------------
     def add_background(self, *background):
@@ -222,10 +227,14 @@ class Model:
         self.__verify_background(bg_old, check_if_in_model=True)
         self.__verify_background(bg_new)
 
-        self.__rename_item_in_list(bg_old, bg_new, self.__background)
+        if bg_new not in self.__background:
+            self.__rename_item_in_list(bg_old, bg_new, self.__background)
 
-        # Rename background within mechanisms
-        self.__rename_item_in_list_dict(bg_old, bg_new, self.__mechanisms)
+            # Rename background within mechanisms
+            self.__rename_item_in_list_dict(bg_old, bg_new, self.__mechanisms)
+        else:
+            raise ValueError('New background name already exists. Replacing'+ 
+            ' background must be new.') 
 
     # CONSEQUENCES -------------------------------------------------------------
     def add_consequences(self, *consequences):
@@ -287,19 +296,23 @@ class Model:
         self.__verify_consequence(con_old, True)
         self.__verify_consequence(con_new)
 
-        self.__rename_item_in_list(con_old, con_new, self.__consequences)
+        if con_new not in self.__consequences:
+            self.__rename_item_in_list(con_old, con_new, self.__consequences)
 
-        # Rename consequence within mechanisms
-        self.__rename_item_in_list_dict(con_old, con_new, self.__mechanisms,
-                                        True)
+            # Rename consequence within mechanisms
+            self.__rename_item_in_list_dict(con_old, con_new, self.__mechanisms,
+                                            True)
 
-        # Rename consequence within utilities
-        self.__rename_key(con_old, con_new, self.__utilities)
-        self.__rename_key(self.__not_str(con_old), self.__not_str(con_new),
-                          self.__utilities)
+            # Rename consequence within utilities
+            self.__rename_key(con_old, con_new, self.__utilities)
+            self.__rename_key(self.__not_str(con_old), self.__not_str(con_new),
+                            self.__utilities)
 
-        # Rename consequence within intentions
-        self.__rename_item_in_list_dict(con_old, con_new, self.__intentions)
+            # Rename consequence within intentions
+            self.__rename_item_in_list_dict(con_old, con_new, self.__intentions)
+        else:
+            raise ValueError('New consequence name already exists. Replacing'+ 
+            ' consequence must be new.') 
 
     # MECHANISMS ---------------------------------------------------------------
     def add_mechanisms(self, consequence, *variables):
@@ -596,7 +609,7 @@ class Model:
             self.__rename_key(item_old, item_new, list_dict)
 
         # Replace all occurences of the old item with the new item
-        for item_list in list_dict.items():
+        for item_list in list_dict.values():
             for pos, item in enumerate(item_list):
                 if item == item_old:
                     item_list[pos] = item_new
