@@ -9,15 +9,47 @@ json format:
 
 ```json
 {
+    "id": <MESSAGE ID>,
+    "type": <MESSAGE TYPE>,
+    "query": <QUERY>
+}
+```
+
+The `id` of a message is a unique integer type identifier. `type` can either be
+`"request"` or `"reply"`. The structure of the `query` field depends on the type
+of the message.
+
+### Request messages
+Structure of `<QUERY>` for messages of type `"request"`:
+```json
+{
     "field": <FIELD NAME>,
     "method": <METHOD NAME>,
     "arguments": <ARGUMENTS>
 }
 ```
 
-## Module methods
-The messages trigger the respective methods of a model. A overwiew over all
-possible methods is given in the table below.
+Requests are sent by the furhat to manipulate or request the state of the model.
+Request messages trigger methods of the model to be executed. See
+[Model methods](#model-methods) for a list of all possible parameters.
+
+### Reply messages
+Structure of `<QUERY>` for messages of type `"reply"`:
+```json
+{
+    "reply_to": <ID>,
+    "result": <RESULT>
+}
+```
+
+Reply messages are generated for every request message. If the request triggered
+a `GET` method, the `"result"` field of the reply contains the return value of
+this method. Otherwise, the `"result"` field contains a boolean value which
+informs about the success of a request.
+
+## Model methods<a name="model-methods"></a>
+The request messages trigger the respective methods of a model. A overwiew over
+all possible methods is given in the table below.
 
 |  Field      | Method | Argument type | Argument example             |
 |-------------|--------|---------------|------------------------------|
@@ -45,3 +77,4 @@ possible methods is given in the table below.
 | intention   | ADD    | dict          | `{"action": "A1", "consequences": ["C1", "C2", ...]}` |
 |             | REMOVE | dict          | `{"action": "A1", "consequences": ["C1", "C2", ...]}` |
 |             | GET    | None          | `None`                       |
+
